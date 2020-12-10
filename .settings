@@ -1,0 +1,20 @@
+autoRefreshLobbyListing=true
+colorPlayersRating=true
+favouriteMaps=[
+    "Black Forest",
+    Hideout,
+    Lombardia,
+    "African Clearing",
+    "Amazon Tunnel",
+    "Land Nomad",
+    Oasis,
+    Arena
+]
+filter=per
+followedUsers=[
+    76561198093992823
+]
+showAutomatches=true
+showFavouritesOnly=false
+showFlags=true
+showRatings=true
