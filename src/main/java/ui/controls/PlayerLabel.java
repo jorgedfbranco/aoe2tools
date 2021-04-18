@@ -1,6 +1,5 @@
 package ui.controls;
 
-import domain.AppSettingsViewModel;
 import domain.CountryCodeService;
 import domain.SteamService;
 import domain.model.Player;
@@ -22,8 +21,6 @@ public class PlayerLabel extends HBox {
             Tooltip.install(imageView, new Tooltip(CountryCodeService.getCountry(player.country())));
             imageView.setFitWidth(16);
             imageView.setFitHeight(16);
-            imageView.visibleProperty().bindBidirectional(AppSettingsViewModel.ShowCountryFlags);
-            imageView.managedProperty().bindBidirectional(AppSettingsViewModel.ShowCountryFlags);
             getChildren().add(imageView);
         }
 

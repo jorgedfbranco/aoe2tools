@@ -1,6 +1,5 @@
 package ui.factories;
 
-import domain.AppSettingsViewModel;
 import domain.CountryCodeService;
 import domain.model.Player;
 import domain.model.Slot;
@@ -62,8 +61,6 @@ class LobbyPanel extends HBox {
                                 Tooltip.install(imageView, new Tooltip(CountryCodeService.getCountry(player.country())));
                                 imageView.setFitWidth(16);
                                 imageView.setFitHeight(16);
-                                imageView.visibleProperty().bindBidirectional(AppSettingsViewModel.ShowCountryFlags);
-                                imageView.managedProperty().bindBidirectional(AppSettingsViewModel.ShowCountryFlags);
                                 hbox.getChildren().add(imageView);
                             }
                             hbox.getChildren().add(new PlayerRatingLabel(player));
