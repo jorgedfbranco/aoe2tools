@@ -58,7 +58,7 @@ public class PlayersTable extends TableView<PlayerRow> {
                         setGraphic(null);
                         var player = getTableRow().getItem();
                         if (player != null)
-                            setGraphic(new PlayerLabel(player.player));
+                            setGraphic(new PlayerLabel(player.player, false));
                     }
                 };
             }

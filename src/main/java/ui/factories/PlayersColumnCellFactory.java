@@ -11,9 +11,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
 import ui.AppResources;
+import ui.controls.PlayerLabel;
 import ui.model.SlotViewModel;
 import ui.viewmodel.LobbyViewModel;
-import ui.controls.PlayerRatingLabel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,15 +55,7 @@ class LobbyPanel extends HBox {
                                 hbox.getChildren().add(imageView);
                             }
 
-                            var countryImage = AppResources.getCountryFlag(player.country());
-                            if (countryImage.isPresent()) {
-                                var imageView = new ImageView(countryImage.get());
-                                Tooltip.install(imageView, new Tooltip(CountryCodeService.getCountry(player.country())));
-                                imageView.setFitWidth(16);
-                                imageView.setFitHeight(16);
-                                hbox.getChildren().add(imageView);
-                            }
-                            hbox.getChildren().add(new PlayerRatingLabel(player));
+                            hbox.getChildren().add(new PlayerLabel(player, true));
                             getChildren().add(hbox);
                             addedPlayer = true;
                         }

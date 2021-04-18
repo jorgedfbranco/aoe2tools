@@ -10,11 +10,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.stage.StageStyle;
 import ui.AppResources;
+import ui.model.RatingColor;
 
 public class PlayerLabel extends HBox {
-    public PlayerLabel(Player player) {
+    public PlayerLabel(Player player, boolean colorLabel) {
         setSpacing(2);
-        setStyle("-fx-font-weight: bold;");
+
         var countryImage = AppResources.getCountryFlag(player.country());
         if (countryImage.isPresent()) {
             var imageView = new ImageView(countryImage.get());
@@ -24,7 +25,18 @@ public class PlayerLabel extends HBox {
             getChildren().add(imageView);
         }
 
-        var playerLabel = new Label(player.name());
+        var playerLabel = new Label();
+
+        var text = player.name();
+        if (player.rating() != 0)
+            text += " (" + player.rating() + ")";
+        playerLabel.setText(text);
+
+        var color = "black";
+        if (colorLabel)
+            color = RatingColor.color(player.rating());
+
+        playerLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: " + color + ";");
         setOnMouseEntered(k -> playerLabel.setUnderline(true));
         setOnMouseExited(k -> playerLabel.setUnderline(false));
 
