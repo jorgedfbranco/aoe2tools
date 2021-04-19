@@ -25,9 +25,13 @@ public class PlayersTable extends TableView<PlayerRow> {
     private final ObservableList<PlayerRow> playerListing = FXCollections.observableList(new ArrayList<>());
     private final BooleanProperty currentlySearching = new SimpleBooleanProperty(false);
 
+    public void onPlayerContextMenuCreation(Player player, ContextMenu contextMenu) { }
+
     public PlayersTable() {
         setItems(playerListing);
         setPlaceholder(new Label());
+
+        setContextMenu(new ContextMenu());
 
         var rating1x1Column = new TableColumn<PlayerRow, Integer>("1x1");
         rating1x1Column.setCellValueFactory(new PropertyValueFactory<>("_1x1Rating"));
@@ -57,8 +61,11 @@ public class PlayersTable extends TableView<PlayerRow> {
                         setText("");
                         setGraphic(null);
                         var player = getTableRow().getItem();
-                        if (player != null)
-                            setGraphic(new PlayerLabel(player.player, false));
+                        if (player != null) {
+                            var playerLabel = new PlayerLabel(player.player, false, false);
+                            onPlayerContextMenuCreation(player.player, playerLabel.getContextMenu());
+                            setGraphic(playerLabel);
+                        }
                     }
                 };
             }

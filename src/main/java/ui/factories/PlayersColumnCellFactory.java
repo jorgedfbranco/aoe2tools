@@ -28,7 +28,7 @@ class LobbyPanel extends HBox {
 
                 var teams = new HashMap<Integer, List<SlotViewModel>>();
                 for (SlotViewModel slot : slots) {
-                    var team = slot.getSlot().team().get();
+                    var team = slot.getSlot().team().orElseGet(() -> 0);
                     var ls = teams.computeIfAbsent(team, k -> new ArrayList<>());
                     ls.add(slot);
                 }
@@ -55,7 +55,7 @@ class LobbyPanel extends HBox {
                                 hbox.getChildren().add(imageView);
                             }
 
-                            hbox.getChildren().add(new PlayerLabel(player, true));
+                            hbox.getChildren().add(new PlayerLabel(player, true, true));
                             getChildren().add(hbox);
                             addedPlayer = true;
                         }

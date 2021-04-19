@@ -1,12 +1,11 @@
 package ui.controls;
 
+import domain.Aoe2Service;
 import domain.model.Lobby;
 import domain.model.Slot;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import ui.viewmodel.LobbyViewModel;
 import ui.factories.PlayersColumnCellFactory;
@@ -47,8 +46,21 @@ public class MatchesTable extends TableView<LobbyViewModel> {
         getColumns().add(playersColumn);
 
         var createdColumn = new TableColumn<LobbyViewModel, String>("Started At");
+        createdColumn.setCellValueFactory(new PropertyValueFactory<>("created"));
         createdColumn.setPrefWidth(100);
         createdColumn.setStyle("-fx-font-weight: bold;");
         getColumns().add(createdColumn);
+
+        var contextMenu = new ContextMenu();
+
+        var spectateMenuItem = new MenuItem("Spectate Match");
+        spectateMenuItem.setOnAction(k -> {
+            var match = getSelectionModel().getSelectedItem();
+            if (match != null)
+                Aoe2Service.spectateGame(match.getId());
+        });
+        contextMenu.getItems().add(spectateMenuItem);
+
+        setContextMenu(contextMenu);
     }
 }

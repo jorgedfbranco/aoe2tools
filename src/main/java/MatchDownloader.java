@@ -1,26 +1,45 @@
 import domain.Aoe2DotNetService;
+import domain.model.Player;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import ui.viewmodel.LobbyViewModel;
-import ui.controls.PlayersTable;
 import ui.controls.FilterBar;
 import ui.controls.MatchesTable;
+import ui.controls.PlayersTable;
+import ui.viewmodel.LobbyViewModel;
 
 import java.util.Optional;
 
 public class MatchDownloader extends Application {
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private void findMatches(PlayersTable playerListing, MatchesTable matchListing) {
+        // TODO: we need to move all this logic to inside matchListing..
+        var player = playerListing.getSelectionModel().getSelectedItem();
+        if (player != null) {
+            // TODO: use threadpool
+            matchListing.matches.clear();
+            var progress = new ProgressIndicator();
+            progress.setMaxWidth(24);
+            matchListing.setPlaceholder(progress);
+            // TODO: we need to unite this placeholder progressbar logic with the other one of playerListing..
+            new Thread(() -> {
+                var lobbies = Aoe2DotNetService.getMatches(player.player.steamId());
+                Platform.runLater(() -> {
+                    lobbies.forEach(lobby -> matchListing.matches.add(new LobbyViewModel(lobby, Optional.empty())));
+                    if (matchListing.matches.isEmpty())
+                        matchListing.setPlaceholder(new Label("No matches found for player."));
+                });
+            }).start();
+        }
     }
 
     @Override
@@ -34,7 +53,18 @@ public class MatchDownloader extends Application {
         var matchListing = new MatchesTable();
         VBox.setVgrow(matchListing, Priority.ALWAYS);
 
-        var playerListing = new PlayersTable();
+        var playerListing = new PlayersTable() {
+            @Override
+            public void onPlayerContextMenuCreation(Player player, ContextMenu contextMenu) {
+                contextMenu.getItems().add(0, new SeparatorMenuItem());
+                var showMatchesMenu = new MenuItem("Show matches");
+                showMatchesMenu.setOnAction(e -> findMatches(this, matchListing));
+                contextMenu.getItems().add(0, showMatchesMenu);
+            }
+        };
+
+        playerListing.getContextMenu().getItems().add(new MenuItem("Show matches"));
+
         playerListing.setPrefHeight(200);
         var filterBar = new FilterBar("Search player:") {
             @Override
@@ -53,24 +83,7 @@ public class MatchDownloader extends Application {
 
         playerListing.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
-                // TODO: we need to move all this logic to inside matchListing..
-                var player = playerListing.getSelectionModel().getSelectedItem();
-                if (player != null) {
-                    // TODO: use threadpool
-                    matchListing.matches.clear();
-                    var progress = new ProgressIndicator();
-                    progress.setMaxWidth(24);
-                    matchListing.setPlaceholder(progress);
-                    // TODO: we need to unite this placeholder progressbar logic with the other one of playerListing..
-                    new Thread(() -> {
-                        var lobbies = Aoe2DotNetService.getMatches(player.player.steamId());
-                        Platform.runLater(() -> {
-                            lobbies.forEach(lobby -> matchListing.matches.add(new LobbyViewModel(lobby, Optional.empty())));
-                            if (matchListing.matches.isEmpty())
-                                matchListing.setPlaceholder(new Label("No matches found for player."));
-                        });
-                    }).start();
-                }
+                findMatches(playerListing, matchListing);
             }
         });
 

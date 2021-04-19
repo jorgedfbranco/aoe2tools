@@ -13,7 +13,9 @@ import ui.AppResources;
 import ui.model.RatingColor;
 
 public class PlayerLabel extends HBox {
-    public PlayerLabel(Player player, boolean colorLabel) {
+    private final Label playerLabel = new Label();
+
+    public PlayerLabel(Player player, boolean colorLabel, boolean showRating) {
         setSpacing(2);
 
         var countryImage = AppResources.getCountryFlag(player.country());
@@ -25,10 +27,8 @@ public class PlayerLabel extends HBox {
             getChildren().add(imageView);
         }
 
-        var playerLabel = new Label();
-
         var text = player.name();
-        if (player.rating() != 0)
+        if (player.rating() != 0 && showRating)
             text += " (" + player.rating() + ")";
         playerLabel.setText(text);
 
@@ -112,4 +112,6 @@ public class PlayerLabel extends HBox {
 
         getChildren().add(playerLabel);
     }
+
+    public ContextMenu getContextMenu() { return playerLabel.getContextMenu(); }
 }
