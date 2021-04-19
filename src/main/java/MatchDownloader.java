@@ -1,10 +1,11 @@
-import domain.Aoe2DotNetService;
 import domain.model.Player;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -12,34 +13,10 @@ import javafx.stage.Stage;
 import ui.controls.FilterBar;
 import ui.controls.MatchesTable;
 import ui.controls.PlayersTable;
-import ui.viewmodel.LobbyViewModel;
-
-import java.util.Optional;
 
 public class MatchDownloader extends Application {
     public static void main(String[] args) {
         launch(args);
-    }
-
-    private void findMatches(PlayersTable playerListing, MatchesTable matchListing) {
-        // TODO: we need to move all this logic to inside matchListing..
-        var player = playerListing.getSelectionModel().getSelectedItem();
-        if (player != null) {
-            // TODO: use threadpool
-            matchListing.matches.clear();
-            var progress = new ProgressIndicator();
-            progress.setMaxWidth(24);
-            matchListing.setPlaceholder(progress);
-            // TODO: we need to unite this placeholder progressbar logic with the other one of playerListing..
-            new Thread(() -> {
-                var lobbies = Aoe2DotNetService.getMatches(player.player.steamId());
-                Platform.runLater(() -> {
-                    lobbies.forEach(lobby -> matchListing.matches.add(new LobbyViewModel(lobby, Optional.empty())));
-                    if (matchListing.matches.isEmpty())
-                        matchListing.setPlaceholder(new Label("No matches found for player."));
-                });
-            }).start();
-        }
     }
 
     @Override
@@ -58,12 +35,14 @@ public class MatchDownloader extends Application {
             public void onPlayerContextMenuCreation(Player player, ContextMenu contextMenu) {
                 contextMenu.getItems().add(0, new SeparatorMenuItem());
                 var showMatchesMenu = new MenuItem("Show matches");
-                showMatchesMenu.setOnAction(e -> findMatches(this, matchListing));
+                showMatchesMenu.setOnAction(e -> matchListing.showMatches(getSelectionModel().getSelectedItem()));
                 contextMenu.getItems().add(0, showMatchesMenu);
             }
         };
 
-        playerListing.getContextMenu().getItems().add(new MenuItem("Show matches"));
+        var showMatchesMenu = new MenuItem("Show matches");
+        showMatchesMenu.setOnAction(e -> matchListing.showMatches(playerListing.getSelectionModel().getSelectedItem()));
+        playerListing.getContextMenu().getItems().add(showMatchesMenu);
 
         playerListing.setPrefHeight(200);
         var filterBar = new FilterBar("Search player:") {
@@ -83,7 +62,7 @@ public class MatchDownloader extends Application {
 
         playerListing.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
-                findMatches(playerListing, matchListing);
+                matchListing.showMatches(playerListing.getSelectionModel().getSelectedItem());
             }
         });
 

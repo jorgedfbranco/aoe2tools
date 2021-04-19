@@ -1,18 +1,22 @@
 package ui.controls;
 
+import domain.Aoe2DotNetService;
 import domain.Aoe2Service;
 import domain.model.Lobby;
 import domain.model.Slot;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import ui.viewmodel.LobbyViewModel;
 import ui.factories.PlayersColumnCellFactory;
 import ui.factories.TitleColumnCellFactory;
+import ui.model.PlayerRow;
+import ui.viewmodel.LobbyViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A TableView displaying one match (or lobby) per row.
@@ -62,5 +66,24 @@ public class MatchesTable extends TableView<LobbyViewModel> {
         contextMenu.getItems().add(spectateMenuItem);
 
         setContextMenu(contextMenu);
+    }
+
+    public void showMatches(PlayerRow player) {
+        if (player != null) {
+            // TODO: use threadpool
+            matches.clear();
+            var progress = new ProgressIndicator();
+            progress.setMaxWidth(24);
+            setPlaceholder(progress);
+            // TODO: we need to unite this placeholder progressbar logic with the other one of playerListing..
+            new Thread(() -> {
+                var lobbies = Aoe2DotNetService.getMatches(player.player.steamId());
+                Platform.runLater(() -> {
+                    lobbies.forEach(lobby -> matches.add(new LobbyViewModel(lobby, Optional.empty())));
+                    if (matches.isEmpty())
+                        setPlaceholder(new Label("No matches found for player."));
+                });
+            }).start();
+        }
     }
 }
