@@ -14,8 +14,14 @@ import ui.model.RatingColor;
 
 public class PlayerLabel extends HBox {
     private final Label playerLabel = new Label();
+    private final Player player;
+
+    public ContextMenu getContextMenu() { return playerLabel.getContextMenu(); }
+    public Player getPlayer() { return player; }
 
     public PlayerLabel(Player player, boolean colorLabel, boolean showRating) {
+        this.player = player;
+
         setSpacing(2);
 
         var countryImage = AppResources.getCountryFlag(player.country());
@@ -43,7 +49,7 @@ public class PlayerLabel extends HBox {
         var contextMenu = new ContextMenu();
 
         var steamProfileMenu = new MenuItem("Open Steam Profile");
-        steamProfileMenu.setDisable(player.steamId() == 0);
+        steamProfileMenu.setDisable(player.steamId().id() == 0);
         var steamProfileImageView = new ImageView(AppResources.SteamIcon);
         steamProfileImageView.setFitWidth(12);
         steamProfileImageView.setFitHeight(12);
@@ -80,7 +86,7 @@ public class PlayerLabel extends HBox {
         contextMenu.getItems().add(aoe2InsightsProfileMenu);
 
         var alsoKnownAsMenu = new MenuItem("Also known as...");
-        alsoKnownAsMenu.setDisable(player.steamId() == 0);
+        alsoKnownAsMenu.setDisable(player.steamId().id() == 0);
         var alsoKnownAsImageView = new ImageView(AppResources.SteamIcon);
         alsoKnownAsImageView.setFitWidth(12);
         alsoKnownAsImageView.setFitHeight(12);
@@ -90,7 +96,7 @@ public class PlayerLabel extends HBox {
             alert.setTitle("Known aliases");
             alert.setHeaderText(null);
             alert.initStyle(StageStyle.UTILITY);
-            var aliases = new SteamService().getPastAliases(player.steamId());
+            var aliases = new SteamService().getPastAliases(player.steamId().id());
             alert.setContentText(aliases.isEmpty() ? player.name() : String.join("\r\n", aliases));
             alert.showAndWait();
         });
@@ -103,7 +109,7 @@ public class PlayerLabel extends HBox {
         contextMenu.getItems().add(copyNicknameMenu);
 
         var copySteamIdMenu = new MenuItem("Copy Steam Id - " + player.steamId());
-        copySteamIdMenu.setDisable(player.steamId() == 0);
+        copySteamIdMenu.setDisable(player.steamId().id() == 0);
         copySteamIdMenu.setOnAction(k -> WindowsClipboard.setClipboard(String.valueOf(player.steamId())));
         contextMenu.getItems().add(copySteamIdMenu);
 
@@ -112,6 +118,4 @@ public class PlayerLabel extends HBox {
 
         getChildren().add(playerLabel);
     }
-
-    public ContextMenu getContextMenu() { return playerLabel.getContextMenu(); }
 }
