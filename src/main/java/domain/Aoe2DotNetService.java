@@ -45,8 +45,8 @@ public class Aoe2DotNetService {
         }
     }
 
-    public static List<Lobby> getMatches(long steamId) {
-        return getLobbies("https://aoe2.net/api/player/matches?game=aoe2de&steam_id=" + steamId + "&count=1000");
+    public static List<Lobby> getMatches(SteamId steamId) {
+        return getLobbies("https://aoe2.net/api/player/matches?game=aoe2de&steam_id=" + steamId.id() + "&count=1000");
     }
 
     public static List<Lobby> getLobbies() {
@@ -71,7 +71,7 @@ public class Aoe2DotNetService {
 
     private static Player parsePlayer(JsonNode slotElement) {
         return new Player(
-            slotElement.get("steam_id").asLong(),
+            new SteamId(slotElement.get("steam_id").asLong()),
             new ProfileId(slotElement.get("profile_id").asInt()),
             slotElement.get("name").asText(),
             slotElement.get("country").asText(),
@@ -82,17 +82,17 @@ public class Aoe2DotNetService {
         );
     }
 
-    public static Optional<Rating> getRating(long steamId, RatingType type) {
+    public static Optional<Rating> getRating(SteamId steamId, RatingType type) {
         String url;
         switch (type) {
             case _1x1:
-                url = "https://aoe2.net/api/player/ratinghistory?game=aoe2de&leaderboard_id=3&steam_id=" + steamId + "&count=1";
+                url = "https://aoe2.net/api/player/ratinghistory?game=aoe2de&leaderboard_id=3&steam_id=" + steamId.id() + "&count=1";
                 break;
             case TeamGame:
-                url = "https://aoe2.net/api/player/ratinghistory?game=aoe2de&leaderboard_id=4&steam_id=" + steamId + "&count=1";
+                url = "https://aoe2.net/api/player/ratinghistory?game=aoe2de&leaderboard_id=4&steam_id=" + steamId.id() + "&count=1";
                 break;
             case Unranked:
-                url = "https://aoe2.net/api/player/ratinghistory?game=aoe2de&leaderboard_id=0&steam_id=" + steamId + "&count=1";
+                url = "https://aoe2.net/api/player/ratinghistory?game=aoe2de&leaderboard_id=0&steam_id=" + steamId.id() + "&count=1";
                 break;
             default:
                 throw new AssertionError("Unknown rating type");
@@ -189,7 +189,7 @@ public class Aoe2DotNetService {
             created = Optional.of(DateTimeUtils.toLocalDateTime(opened));
 
         return new Lobby(
-            element.get("match_id").asLong(),
+            new MatchId(element.get("match_id").asLong()),
             element.get("name").asText().replaceAll("(\n|\r)", ""), // certain lobbies seem to have newlines in them idk why..
             element.get("num_players").asInt(),
             element.get("num_slots").asInt(),

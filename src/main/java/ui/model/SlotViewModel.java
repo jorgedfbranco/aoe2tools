@@ -3,6 +3,7 @@ package ui.model;
 import domain.RatingsService;
 import domain.model.RatingType;
 import domain.model.Slot;
+import domain.model.SteamId;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -29,7 +30,7 @@ public class SlotViewModel {
         }
     }
 
-    private void updateRatings(long steamId, RatingType ratingType, StringProperty ratingProperty) {
+    private void updateRatings(SteamId steamId, RatingType ratingType, StringProperty ratingProperty) {
         RatingsService.getRatings(steamId, ratingType).whenComplete((v, e) -> {
             Platform.runLater(() -> {
                 if (v.isPresent()) {

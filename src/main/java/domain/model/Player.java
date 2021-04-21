@@ -1,7 +1,7 @@
 package domain.model;
 
 public record Player(
-    long steamId, // there seem to be players with no steam id. i guess they're xbox ones? Ex: "xI Khaleesi x"
+    SteamId steamId, // there seem to be players with no steam id. i guess they're xbox ones? Ex: "xI Khaleesi x"
     ProfileId id,
     String name,
     String country,

@@ -4,17 +4,26 @@ import domain.CountryCodeService;
 import domain.SteamService;
 import domain.model.Player;
 import infra.Browser;
-import infra.WindowsClipboard;
+import infra.WindowsService;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.stage.StageStyle;
 import ui.AppResources;
+import ui.model.RatingColor;
 
 public class PlayerLabel extends HBox {
-    public PlayerLabel(Player player) {
+    private final Label playerLabel = new Label();
+    private final Player player;
+
+    public ContextMenu getContextMenu() { return playerLabel.getContextMenu(); }
+    public Player getPlayer() { return player; }
+
+    public PlayerLabel(Player player, boolean colorLabel, boolean showRating) {
+        this.player = player;
+
         setSpacing(2);
-        setStyle("-fx-font-weight: bold;");
+
         var countryImage = AppResources.getCountryFlag(player.country());
         if (countryImage.isPresent()) {
             var imageView = new ImageView(countryImage.get());
@@ -24,19 +33,28 @@ public class PlayerLabel extends HBox {
             getChildren().add(imageView);
         }
 
-        var playerLabel = new Label(player.name());
+        var text = player.name();
+        if (player.rating() != 0 && showRating)
+            text += " (" + player.rating() + ")";
+        playerLabel.setText(text);
+
+        var color = "black";
+        if (colorLabel)
+            color = RatingColor.color(player.rating());
+
+        playerLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: " + color + ";");
         setOnMouseEntered(k -> playerLabel.setUnderline(true));
         setOnMouseExited(k -> playerLabel.setUnderline(false));
 
         var contextMenu = new ContextMenu();
 
         var steamProfileMenu = new MenuItem("Open Steam Profile");
-        steamProfileMenu.setDisable(player.steamId() == 0);
+        steamProfileMenu.setDisable(player.steamId().id() == 0);
         var steamProfileImageView = new ImageView(AppResources.SteamIcon);
         steamProfileImageView.setFitWidth(12);
         steamProfileImageView.setFitHeight(12);
         steamProfileMenu.setGraphic(steamProfileImageView);
-        var steamUrl = "https://steamcommunity.com/profiles/" + player.steamId();
+        var steamUrl = "https://steamcommunity.com/profiles/" + player.steamId().id();
         steamProfileMenu.setOnAction(k -> Browser.open(steamUrl));
         contextMenu.getItems().add(steamProfileMenu);
 
@@ -68,7 +86,7 @@ public class PlayerLabel extends HBox {
         contextMenu.getItems().add(aoe2InsightsProfileMenu);
 
         var alsoKnownAsMenu = new MenuItem("Also known as...");
-        alsoKnownAsMenu.setDisable(player.steamId() == 0);
+        alsoKnownAsMenu.setDisable(player.steamId().id() == 0);
         var alsoKnownAsImageView = new ImageView(AppResources.SteamIcon);
         alsoKnownAsImageView.setFitWidth(12);
         alsoKnownAsImageView.setFitHeight(12);
@@ -78,7 +96,7 @@ public class PlayerLabel extends HBox {
             alert.setTitle("Known aliases");
             alert.setHeaderText(null);
             alert.initStyle(StageStyle.UTILITY);
-            var aliases = new SteamService().getPastAliases(player.steamId());
+            var aliases = new SteamService().getPastAliases(player.steamId().id());
             alert.setContentText(aliases.isEmpty() ? player.name() : String.join("\r\n", aliases));
             alert.showAndWait();
         });
@@ -87,12 +105,12 @@ public class PlayerLabel extends HBox {
         contextMenu.getItems().add(new SeparatorMenuItem());
 
         var copyNicknameMenu = new MenuItem("Copy Nickname");
-        copyNicknameMenu.setOnAction(k -> WindowsClipboard.setClipboard(String.valueOf(player.name())));
+        copyNicknameMenu.setOnAction(k -> WindowsService.setClipboard(String.valueOf(player.name())));
         contextMenu.getItems().add(copyNicknameMenu);
 
-        var copySteamIdMenu = new MenuItem("Copy Steam Id - " + player.steamId());
-        copySteamIdMenu.setDisable(player.steamId() == 0);
-        copySteamIdMenu.setOnAction(k -> WindowsClipboard.setClipboard(String.valueOf(player.steamId())));
+        var copySteamIdMenu = new MenuItem("Copy Steam Id - " + player.steamId().id());
+        copySteamIdMenu.setDisable(player.steamId().id() == 0);
+        copySteamIdMenu.setOnAction(k -> WindowsService.setClipboard(String.valueOf(player.steamId().id())));
         contextMenu.getItems().add(copySteamIdMenu);
 
         contextMenu.getItems().add(new SeparatorMenuItem());

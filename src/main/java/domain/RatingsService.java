@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import domain.model.Rating;
 import domain.model.RatingType;
+import domain.model.SteamId;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,7 +43,7 @@ public class RatingsService {
         }
     }
 
-    public static Optional<Rating> getRatingsFromMemory(long steamId, RatingType type) {
+    public static Optional<Rating> getRatingsFromMemory(SteamId steamId, RatingType type) {
         var ratingInformation = ratings.get(getKey(steamId, type));
         if (ratingInformation == null) return Optional.empty();
         return ratingInformation.rating;
@@ -53,7 +54,7 @@ public class RatingsService {
      * Keys more than K days old will get recomputed again, to avoid having data that is
      * too stale.
      */
-    public static CompletableFuture<Optional<Rating>> getRatings(long steamId, RatingType type) {
+    public static CompletableFuture<Optional<Rating>> getRatings(SteamId steamId, RatingType type) {
         var key = getKey(steamId, type);
         var playerRatings = ratings.get(key);
         if (playerRatings == null || playerRatings.accessTime.isBefore(LocalDateTime.now().minusDays(30))) {
@@ -67,8 +68,8 @@ public class RatingsService {
         }
     }
 
-    private static String getKey(long steamId, RatingType type) {
-        return steamId + ";" + type;
+    private static String getKey(SteamId steamId, RatingType type) {
+        return steamId.id() + ";" + type;
     }
 
     /**
@@ -83,5 +84,5 @@ public class RatingsService {
         }
     }
 
-    private static record RatingInformation(long steamId, RatingType type, LocalDateTime accessTime, Optional<Rating> rating) { }
+    private static record RatingInformation(SteamId steamId, RatingType type, LocalDateTime accessTime, Optional<Rating> rating) { }
 }

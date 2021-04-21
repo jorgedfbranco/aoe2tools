@@ -1,4 +1,4 @@
-package ui.controls;
+package ui.controls.playerstable;
 
 import domain.Aoe2DotNetService;
 import domain.model.LeaderboardType;
@@ -10,12 +10,12 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
-import javafx.util.Callback;
 import ui.model.PlayerRow;
-import ui.factories.RatingColumnCellFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,45 +25,12 @@ public class PlayersTable extends TableView<PlayerRow> {
     private final ObservableList<PlayerRow> playerListing = FXCollections.observableList(new ArrayList<>());
     private final BooleanProperty currentlySearching = new SimpleBooleanProperty(false);
 
+    public void onPlayerContextMenuCreation(Player player, ContextMenu contextMenu) { }
+
     public PlayersTable() {
         setItems(playerListing);
         setPlaceholder(new Label());
-
-        var rating1x1Column = new TableColumn<PlayerRow, Integer>("1x1");
-        rating1x1Column.setCellValueFactory(new PropertyValueFactory<>("_1x1Rating"));
-        rating1x1Column.setCellFactory(new RatingColumnCellFactory<>());
-        getColumns().add(rating1x1Column);
-
-        var ratingTGColumn = new TableColumn<PlayerRow, Integer>("TG");
-        ratingTGColumn.setCellValueFactory(new PropertyValueFactory<>("tgRating"));
-        ratingTGColumn.setCellFactory(new RatingColumnCellFactory<>());
-        getColumns().add(ratingTGColumn);
-
-        var ratingUnrankedColumn = new TableColumn<PlayerRow, Integer>("Unranked");
-        ratingUnrankedColumn.setCellValueFactory(new PropertyValueFactory<>("unranked"));
-        ratingUnrankedColumn.setCellFactory(new RatingColumnCellFactory<>());
-        getColumns().add(ratingUnrankedColumn);
-
-        var nickColumn = new TableColumn<PlayerRow, String>("Nick");
-        nickColumn.setPrefWidth(200);
-        nickColumn.setCellValueFactory(new PropertyValueFactory<>("nick"));
-        nickColumn.setCellFactory(new Callback<>() {
-            @Override
-            public TableCell<PlayerRow, String> call(TableColumn<PlayerRow, String> playerRowStringTableColumn) {
-                return new TableCell<>() {
-                    @Override
-                    protected void updateItem(String v, boolean empty) {
-                        super.updateItem(v, empty);
-                        setText("");
-                        setGraphic(null);
-                        var player = getTableRow().getItem();
-                        if (player != null)
-                            setGraphic(new PlayerLabel(player.player));
-                    }
-                };
-            }
-        });
-        getColumns().add(nickColumn);
+        setContextMenu(new ContextMenu());
     }
 
     public BooleanProperty currentlySearchingProperty() { return currentlySearching; }
