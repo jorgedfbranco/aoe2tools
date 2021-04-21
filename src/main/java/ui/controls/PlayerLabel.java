@@ -4,7 +4,7 @@ import domain.CountryCodeService;
 import domain.SteamService;
 import domain.model.Player;
 import infra.Browser;
-import infra.WindowsClipboard;
+import infra.WindowsService;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -54,7 +54,7 @@ public class PlayerLabel extends HBox {
         steamProfileImageView.setFitWidth(12);
         steamProfileImageView.setFitHeight(12);
         steamProfileMenu.setGraphic(steamProfileImageView);
-        var steamUrl = "https://steamcommunity.com/profiles/" + player.steamId();
+        var steamUrl = "https://steamcommunity.com/profiles/" + player.steamId().id();
         steamProfileMenu.setOnAction(k -> Browser.open(steamUrl));
         contextMenu.getItems().add(steamProfileMenu);
 
@@ -105,12 +105,12 @@ public class PlayerLabel extends HBox {
         contextMenu.getItems().add(new SeparatorMenuItem());
 
         var copyNicknameMenu = new MenuItem("Copy Nickname");
-        copyNicknameMenu.setOnAction(k -> WindowsClipboard.setClipboard(String.valueOf(player.name())));
+        copyNicknameMenu.setOnAction(k -> WindowsService.setClipboard(String.valueOf(player.name())));
         contextMenu.getItems().add(copyNicknameMenu);
 
-        var copySteamIdMenu = new MenuItem("Copy Steam Id - " + player.steamId());
+        var copySteamIdMenu = new MenuItem("Copy Steam Id - " + player.steamId().id());
         copySteamIdMenu.setDisable(player.steamId().id() == 0);
-        copySteamIdMenu.setOnAction(k -> WindowsClipboard.setClipboard(String.valueOf(player.steamId())));
+        copySteamIdMenu.setOnAction(k -> WindowsService.setClipboard(String.valueOf(player.steamId().id())));
         contextMenu.getItems().add(copySteamIdMenu);
 
         contextMenu.getItems().add(new SeparatorMenuItem());

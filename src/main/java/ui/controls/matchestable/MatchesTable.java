@@ -1,17 +1,17 @@
 package ui.controls.matchestable;
 
 import domain.Aoe2DotNetService;
-import domain.Aoe2Service;
-import domain.model.Slot;
 import domain.model.SteamId;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.*;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TableView;
 import ui.viewmodel.LobbyViewModel;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 
@@ -22,39 +22,22 @@ public class MatchesTable extends TableView<LobbyViewModel> {
     // TODO: make this private
     public final ObservableList<LobbyViewModel> matches = FXCollections.observableList(new ArrayList<>());
 
-    public final TableColumn<LobbyViewModel, List<Slot>> playersColumn = new TableColumn<>("Players");
-//    public final PlayersColumnCellFactory playersColumnCellFactory = new PlayersColumnCellFactory();
+//    public final TableColumn<LobbyViewModel, List<Slot>> playersColumn = new TableColumn<>("Players");
 
     public MatchesTable() {
         setPlaceholder(new Label());
         setItems(matches);
 
-//        mapColumn.
-//        getColumns().add(mapColumn);
-
-//        var titleColumn = new TableColumn<LobbyViewModel, Lobby>("Title");
-//        getColumns().add(titleColumn);
-
-//        playersColumn.setCellValueFactory(new PropertyValueFactory<>("players"));
-//        playersColumn.setCellFactory(playersColumnCellFactory);
-//        playersColumn.setPrefWidth(1000);
-//         playersColumn.setStyle("-fx-font-weight: bold;");
-//        getColumns().add(playersColumn);
-
-//        var createdColumn = new TableColumn<LobbyViewModel, String>("Started At");
-//        getColumns().add(createdColumn);
-
-        var contextMenu = new ContextMenu();
-
-        var spectateMenuItem = new MenuItem("Spectate Match");
-        spectateMenuItem.setOnAction(k -> {
-            var match = getSelectionModel().getSelectedItem();
-            if (match != null)
-                Aoe2Service.spectateGame(match.getId());
-        });
-        contextMenu.getItems().add(spectateMenuItem);
-
-        setContextMenu(contextMenu);
+//
+//        var spectateMenuItem = new MenuItem("Spectate Match");
+//        spectateMenuItem.setOnAction(k -> {
+//            var match = getSelectionModel().getSelectedItem();
+//            if (match != null)
+//                Aoe2Service.spectateGame(match.getId());
+//        });
+//        contextMenu.getItems().add(spectateMenuItem);
+//
+        setContextMenu(new ContextMenu());
     }
 
     public void showMatches(SteamId steamId) {

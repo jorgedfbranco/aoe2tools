@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 public record Lobby(
-    long id,
+    MatchId id,
     String title,
     int numPlayers,
     int slotCount /* TODO: could this be inferred from `slots`? */,

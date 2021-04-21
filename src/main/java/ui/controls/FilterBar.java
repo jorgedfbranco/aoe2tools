@@ -10,7 +10,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
-public abstract class FilterBar extends HBox {
+public class FilterBar extends HBox {
     private final Label label;
     private final TextField textField = new TextField();
     private final Button button = new Button("Search");
@@ -39,5 +39,5 @@ public abstract class FilterBar extends HBox {
         return searchButtonDisabled;
     }
 
-    protected abstract void onFilter(String filter);
+    protected void onFilter(String filter) {}
 }

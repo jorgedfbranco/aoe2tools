@@ -15,7 +15,7 @@ public class TitleColumn extends TableColumn<LobbyViewModel, Lobby> {
     public TitleColumn() {
         super("Title");
         setCellValueFactory(new PropertyValueFactory<>("lobby"));
-        setPrefWidth(350);
+        setPrefWidth(250);
         setStyle("-fx-font-weight: bold;");
 
         setCellFactory(new Callback<TableColumn<LobbyViewModel, Lobby>, TableCell<LobbyViewModel, Lobby>>() {

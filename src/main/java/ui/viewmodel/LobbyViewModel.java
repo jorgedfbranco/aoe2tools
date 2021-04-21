@@ -1,6 +1,7 @@
 package ui.viewmodel;
 
 import domain.model.Lobby;
+import domain.model.MatchId;
 import infra.DateTimeUtils;
 import ui.model.SlotViewModel;
 
@@ -21,7 +22,7 @@ public class LobbyViewModel {
             slots.add(new SlotViewModel(slot));
     }
 
-    public long getId() {
+    public MatchId getId() {
         return lobby.id();
     }
     public String getTitle() { return lobby.title(); }

@@ -189,7 +189,7 @@ public class Aoe2DotNetService {
             created = Optional.of(DateTimeUtils.toLocalDateTime(opened));
 
         return new Lobby(
-            element.get("match_id").asLong(),
+            new MatchId(element.get("match_id").asLong()),
             element.get("name").asText().replaceAll("(\n|\r)", ""), // certain lobbies seem to have newlines in them idk why..
             element.get("num_players").asInt(),
             element.get("num_slots").asInt(),

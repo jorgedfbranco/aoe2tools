@@ -22,6 +22,7 @@ public class PlayersColumn extends TableColumn<LobbyViewModel, List<Slot>> {
     public void onPlayerLabelCreated(PlayerLabel label) {}
 
     public PlayersColumn() {
+        super("Players");
         setCellValueFactory(new PropertyValueFactory<>("players"));
         setPrefWidth(1000);
         setStyle("-fx-font-weight: bold;");

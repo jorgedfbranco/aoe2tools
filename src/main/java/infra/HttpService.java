@@ -21,4 +21,20 @@ public class HttpService {
         }
         return null;
     }
+
+    public static boolean checkUrlExists(String url) {
+        OkHttpClient client = new OkHttpClient();
+
+        Request request = new Request.Builder()
+            .url(url)
+            .head()
+            .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            return response.code() == 200;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
