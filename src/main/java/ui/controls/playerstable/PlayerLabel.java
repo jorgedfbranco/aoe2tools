@@ -1,4 +1,4 @@
-package ui.controls;
+package ui.controls.playerstable;
 
 import domain.CountryCodeService;
 import domain.SteamService;

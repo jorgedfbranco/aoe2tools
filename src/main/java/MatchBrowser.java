@@ -15,7 +15,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import ui.controls.FilterBar;
-import ui.controls.PlayerLabel;
+import ui.controls.playerstable.PlayerLabel;
 import ui.controls.matchestable.*;
 import ui.controls.playerstable.NickColumn;
 import ui.controls.playerstable.PlayersTable;

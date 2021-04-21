@@ -4,7 +4,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.util.Callback;
-import ui.controls.PlayerLabel;
 import ui.model.PlayerRow;
 
 public class NickColumn extends TableColumn<PlayerRow, String> {

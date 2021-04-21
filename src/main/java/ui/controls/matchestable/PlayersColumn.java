@@ -10,7 +10,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
 import ui.AppResources;
-import ui.controls.PlayerLabel;
+import ui.controls.playerstable.PlayerLabel;
 import ui.model.SlotViewModel;
 import ui.viewmodel.LobbyViewModel;
 
