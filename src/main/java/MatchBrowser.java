@@ -21,68 +21,7 @@ import ui.controls.playerstable.NickColumn;
 import ui.controls.playerstable.PlayersTable;
 import ui.controls.playerstable.RatingColumn;
 
-class MatchDownloaderViewModel {
-    private final PlayersTable playersListing;
-    private final MatchesTable matchesListing;
-
-    public MatchDownloaderViewModel(MatchesTable matchListing, PlayersTable playerListing) {
-        this.matchesListing = matchListing;
-        this.playersListing = playerListing;
-    }
-
-    public void onShowMatchesAction() {
-        var selectedItem = playersListing.getSelectionModel().getSelectedItem();
-        if (selectedItem != null) {
-            var steamId = selectedItem.player.steamId();
-            matchesListing.showMatches(steamId);
-        }
-    }
-
-    public void spectateGame() {
-        var selectedItem = matchesListing.getSelectionModel().getSelectedItem();
-        if (selectedItem != null)
-            Aoe2Service.spectateGame(selectedItem.getId());
-    }
-
-    public void downloadGame(ProfileId profileId) {
-        var selectedItem = matchesListing.getSelectionModel().getSelectedItem();
-        if (selectedItem != null)
-            Aoe2Service.downloadGame(selectedItem.getId(), profileId);
-    }
-
-    public void copyDownloadLink(ProfileId profileId) {
-        var selectedItem = matchesListing.getSelectionModel().getSelectedItem();
-        if (selectedItem != null)
-            WindowsService.setClipboard(Aoe2Service.downloadLink(selectedItem.getId(), profileId));
-    }
-
-    public void downloadGame() {
-        var selectedItem = matchesListing.getSelectionModel().getSelectedItem();
-        if (selectedItem != null) {
-            var matchId = selectedItem.getId();
-
-            for (var slot : selectedItem.getPlayers()) {
-                var player = slot.getSlot().player();
-                if (player.isPresent()) {
-                    var profileId = player.get().id();
-                    var downloadLink = Aoe2Service.downloadLink(matchId, profileId);
-                    if (HttpService.checkUrlExists(downloadLink)) {
-                        Aoe2Service.downloadGame(matchId, profileId);
-                        return;
-                    }
-                }
-            }
-
-            var alert = new Alert(Alert.AlertType.WARNING, "Could not find any valid download link.\r\nEither the match's still ongoing or the match's too old?");
-            alert.initStyle(StageStyle.UTILITY);
-            alert.setTitle("No match found.");
-            alert.setHeaderText(null);
-            alert.showAndWait();
-        }
-    }
-}
-
-public class MatchDownloader extends Application {
+public class MatchBrowser extends Application {
     public static void main(String[] args) {
         launch(args);
     }
@@ -100,7 +39,7 @@ public class MatchDownloader extends Application {
 
         var playerListing = new PlayersTable();
 
-        var viewModel = new MatchDownloaderViewModel(matchListing, playerListing);
+        var viewModel = new MatchDownloaderController(matchListing, playerListing);
 
         playerListing.getColumns().add(RatingColumn._1x1RatingColumn);
         playerListing.getColumns().add(RatingColumn.tgRatingColumn);
@@ -181,5 +120,66 @@ public class MatchDownloader extends Application {
         primaryStage.setHeight(1000);
         primaryStage.setScene(new Scene(vbox, 0, 0));
         primaryStage.show();
+    }
+}
+
+class MatchDownloaderController {
+    private final PlayersTable playersListing;
+    private final MatchesTable matchesListing;
+
+    public MatchDownloaderController(MatchesTable matchListing, PlayersTable playerListing) {
+        this.matchesListing = matchListing;
+        this.playersListing = playerListing;
+    }
+
+    public void onShowMatchesAction() {
+        var selectedItem = playersListing.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+            var steamId = selectedItem.player.steamId();
+            matchesListing.showMatches(steamId);
+        }
+    }
+
+    public void spectateGame() {
+        var selectedItem = matchesListing.getSelectionModel().getSelectedItem();
+        if (selectedItem != null)
+            Aoe2Service.spectateGame(selectedItem.getId());
+    }
+
+    public void downloadGame(ProfileId profileId) {
+        var selectedItem = matchesListing.getSelectionModel().getSelectedItem();
+        if (selectedItem != null)
+            Aoe2Service.downloadGame(selectedItem.getId(), profileId);
+    }
+
+    public void copyDownloadLink(ProfileId profileId) {
+        var selectedItem = matchesListing.getSelectionModel().getSelectedItem();
+        if (selectedItem != null)
+            WindowsService.setClipboard(Aoe2Service.downloadLink(selectedItem.getId(), profileId));
+    }
+
+    public void downloadGame() {
+        var selectedItem = matchesListing.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+            var matchId = selectedItem.getId();
+
+            for (var slot : selectedItem.getPlayers()) {
+                var player = slot.getSlot().player();
+                if (player.isPresent()) {
+                    var profileId = player.get().id();
+                    var downloadLink = Aoe2Service.downloadLink(matchId, profileId);
+                    if (HttpService.checkUrlExists(downloadLink)) {
+                        Aoe2Service.downloadGame(matchId, profileId);
+                        return;
+                    }
+                }
+            }
+
+            var alert = new Alert(Alert.AlertType.WARNING, "Could not find any valid download link.\r\nEither the match's still ongoing or the match's too old?");
+            alert.initStyle(StageStyle.UTILITY);
+            alert.setTitle("No match found.");
+            alert.setHeaderText(null);
+            alert.showAndWait();
+        }
     }
 }
