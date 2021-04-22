@@ -22,6 +22,10 @@ public class MatchesTable extends TableView<LobbyViewModel> {
     // TODO: make this private
     public final ObservableList<LobbyViewModel> matches = FXCollections.observableList(new ArrayList<>());
 
+    private SteamId currentPlayerId;
+
+    public SteamId currentPlayerId() { return currentPlayerId; }
+
 //    public final TableColumn<LobbyViewModel, List<Slot>> playersColumn = new TableColumn<>("Players");
 
     public MatchesTable() {
@@ -42,6 +46,7 @@ public class MatchesTable extends TableView<LobbyViewModel> {
 
     public void showMatches(SteamId steamId) {
         // TODO: use threadpool
+        this.currentPlayerId = steamId;
         matches.clear();
         var progress = new ProgressIndicator();
         progress.setMaxWidth(24);
@@ -53,6 +58,8 @@ public class MatchesTable extends TableView<LobbyViewModel> {
                 lobbies.forEach(lobby -> matches.add(new LobbyViewModel(lobby, Optional.empty())));
                 if (matches.isEmpty())
                     setPlaceholder(new Label("No matches found for player."));
+                else
+                    getSelectionModel().select(0);
             });
         }).start();
     }

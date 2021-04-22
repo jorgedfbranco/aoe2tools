@@ -113,7 +113,6 @@ public class PlayerLabel extends HBox {
         copySteamIdMenu.setOnAction(k -> WindowsService.setClipboard(String.valueOf(player.steamId().id())));
         contextMenu.getItems().add(copySteamIdMenu);
 
-        contextMenu.getItems().add(new SeparatorMenuItem());
         playerLabel.setContextMenu(contextMenu);
 
         getChildren().add(playerLabel);

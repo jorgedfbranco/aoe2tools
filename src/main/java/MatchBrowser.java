@@ -1,5 +1,6 @@
 import domain.Aoe2Service;
 import domain.model.ProfileId;
+import domain.model.SteamId;
 import infra.HttpService;
 import infra.WindowsService;
 import javafx.application.Application;
@@ -15,9 +16,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import ui.controls.FilterBar;
-import ui.controls.playerstable.PlayerLabel;
+import ui.controls.MatchPane;
 import ui.controls.matchestable.*;
 import ui.controls.playerstable.NickColumn;
+import ui.controls.playerstable.PlayerLabel;
 import ui.controls.playerstable.PlayersTable;
 import ui.controls.playerstable.RatingColumn;
 
@@ -39,7 +41,9 @@ public class MatchBrowser extends Application {
 
         var playerListing = new PlayersTable();
 
-        var viewModel = new MatchDownloaderController(matchListing, playerListing);
+        var matchPane = new MatchPane();
+
+        var viewModel = new MatchDownloaderController(matchListing, playerListing, matchPane);
 
         playerListing.getColumns().add(RatingColumn._1x1RatingColumn);
         playerListing.getColumns().add(RatingColumn.tgRatingColumn);
@@ -84,6 +88,13 @@ public class MatchBrowser extends Application {
                 downloadMatchMenu.setOnAction(e -> viewModel.downloadGame(label.getPlayer().id()));
 
                 label.getContextMenu().getItems().add(3, new SeparatorMenuItem());
+
+                if (!label.getPlayer().steamId().equals(matchListing.currentPlayerId())) {
+                    label.getContextMenu().getItems().add(new SeparatorMenuItem());
+                    var showMatchesMenu = new MenuItem("Show Matches");
+                    showMatchesMenu.setOnAction(e -> viewModel.onShowPlayerMatchesAction(label.getPlayer().steamId()));
+                    label.getContextMenu().getItems().add(showMatchesMenu);
+                }
             }
         });
 
@@ -94,10 +105,17 @@ public class MatchBrowser extends Application {
             @Override
             protected void onFilter(String filter) {
                 matchListing.matches.clear();
+                matchPane.clearMatch();
                 matchListing.setPlaceholder(new Label());
                 playerListing.search(filter);
             }
         };
+        playerListing.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                var steamId = playerListing.getSelectionModel().getSelectedItem().player.steamId();
+                matchListing.showMatches(steamId);
+            }
+        });
         filterBar.searchButtonDisabledProperty().bind(playerListing.currentlySearchingProperty());
 
         vbox.getChildren().add(filterBar);
@@ -105,15 +123,15 @@ public class MatchBrowser extends Application {
         vbox.getChildren().add(new Label("Player Listing:"));
         vbox.getChildren().add(playerListing);
 
-        playerListing.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2) {
-                var steamId = playerListing.getSelectionModel().getSelectedItem().player.steamId();
-                matchListing.showMatches(steamId);
-            }
-        });
-
         vbox.getChildren().add(new Label("Matches Listing:"));
         vbox.getChildren().add(matchListing);
+
+        matchListing.getSelectionModel().selectedItemProperty().addListener((observableValue, m, t1) -> {
+            var match = matchListing.getSelectionModel().getSelectedItem();
+            if (match != null)
+                matchPane.loadMatch(match.getLobby());
+        });
+        vbox.getChildren().add(matchPane);
 
         primaryStage.setTitle("AOE2DE Match Browser");
         primaryStage.setWidth(1000);
@@ -126,10 +144,12 @@ public class MatchBrowser extends Application {
 class MatchDownloaderController {
     private final PlayersTable playersListing;
     private final MatchesTable matchesListing;
+    private final MatchPane matchPane;
 
-    public MatchDownloaderController(MatchesTable matchListing, PlayersTable playerListing) {
+    public MatchDownloaderController(MatchesTable matchListing, PlayersTable playerListing, MatchPane matchPane) {
         this.matchesListing = matchListing;
         this.playersListing = playerListing;
+        this.matchPane = matchPane;
     }
 
     public void onShowMatchesAction() {
@@ -181,5 +201,10 @@ class MatchDownloaderController {
             alert.setHeaderText(null);
             alert.showAndWait();
         }
+    }
+
+    public void onShowPlayerMatchesAction(SteamId steamId) {
+        matchPane.clearMatch();
+        matchesListing.showMatches(steamId);
     }
 }
