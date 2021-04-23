@@ -1,6 +1,5 @@
 import domain.Aoe2Service;
 import domain.model.ProfileId;
-import domain.model.SteamId;
 import infra.HttpService;
 import infra.WindowsService;
 import javafx.application.Application;
@@ -89,10 +88,10 @@ public class MatchBrowser extends Application {
 
                 label.getContextMenu().getItems().add(3, new SeparatorMenuItem());
 
-                if (!label.getPlayer().steamId().equals(matchListing.currentPlayerId())) {
+                if (!label.getPlayer().id().equals(matchListing.currentPlayerId())) {
                     label.getContextMenu().getItems().add(new SeparatorMenuItem());
                     var showMatchesMenu = new MenuItem("Show Matches");
-                    showMatchesMenu.setOnAction(e -> viewModel.onShowPlayerMatchesAction(label.getPlayer().steamId()));
+                    showMatchesMenu.setOnAction(e -> viewModel.onShowPlayerMatchesAction(label.getPlayer().id()));
                     label.getContextMenu().getItems().add(showMatchesMenu);
                 }
             }
@@ -112,8 +111,8 @@ public class MatchBrowser extends Application {
         };
         playerListing.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
-                var steamId = playerListing.getSelectionModel().getSelectedItem().player.steamId();
-                matchListing.showMatches(steamId);
+                var profileId = playerListing.getSelectionModel().getSelectedItem().player.id();
+                matchListing.showMatches(profileId);
             }
         });
         filterBar.searchButtonDisabledProperty().bind(playerListing.currentlySearchingProperty());
@@ -155,8 +154,8 @@ class MatchDownloaderController {
     public void onShowMatchesAction() {
         var selectedItem = playersListing.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
-            var steamId = selectedItem.player.steamId();
-            matchesListing.showMatches(steamId);
+            var profileId = selectedItem.player.id();
+            matchesListing.showMatches(profileId);
         }
     }
 
@@ -203,8 +202,8 @@ class MatchDownloaderController {
         }
     }
 
-    public void onShowPlayerMatchesAction(SteamId steamId) {
+    public void onShowPlayerMatchesAction(ProfileId id) {
         matchPane.clearMatch();
-        matchesListing.showMatches(steamId);
+        matchesListing.showMatches(id);
     }
 }

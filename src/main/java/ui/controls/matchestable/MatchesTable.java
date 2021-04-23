@@ -1,6 +1,7 @@
 package ui.controls.matchestable;
 
 import domain.Aoe2DotNetService;
+import domain.model.ProfileId;
 import domain.model.SteamId;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -22,9 +23,9 @@ public class MatchesTable extends TableView<LobbyViewModel> {
     // TODO: make this private
     public final ObservableList<LobbyViewModel> matches = FXCollections.observableList(new ArrayList<>());
 
-    private SteamId currentPlayerId;
+    private ProfileId currentPlayerId;
 
-    public SteamId currentPlayerId() { return currentPlayerId; }
+    public ProfileId currentPlayerId() { return currentPlayerId; }
 
 //    public final TableColumn<LobbyViewModel, List<Slot>> playersColumn = new TableColumn<>("Players");
 
@@ -44,16 +45,16 @@ public class MatchesTable extends TableView<LobbyViewModel> {
         setContextMenu(new ContextMenu());
     }
 
-    public void showMatches(SteamId steamId) {
+    public void showMatches(ProfileId id) {
         // TODO: use threadpool
-        this.currentPlayerId = steamId;
+        this.currentPlayerId = id;
         matches.clear();
         var progress = new ProgressIndicator();
         progress.setMaxWidth(24);
         setPlaceholder(progress);
         // TODO: we need to unite this placeholder progressbar logic with the other one of playerListing..
         new Thread(() -> {
-            var lobbies = Aoe2DotNetService.getMatches(steamId);
+            var lobbies = Aoe2DotNetService.getMatches(id);
             Platform.runLater(() -> {
                 lobbies.forEach(lobby -> matches.add(new LobbyViewModel(lobby, Optional.empty())));
                 if (matches.isEmpty())

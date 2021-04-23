@@ -45,8 +45,8 @@ public class Aoe2DotNetService {
         }
     }
 
-    public static List<Lobby> getMatches(SteamId steamId) {
-        return getLobbies("https://aoe2.net/api/player/matches?game=aoe2de&steam_id=" + steamId.id() + "&count=1000");
+    public static List<Lobby> getMatches(ProfileId id) {
+        return getLobbies("https://aoe2.net/api/player/matches?game=aoe2de&profile_id=" + id.id() + "&count=1000");
     }
 
     public static List<Lobby> getLobbies() {
