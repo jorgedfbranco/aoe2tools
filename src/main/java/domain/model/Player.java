@@ -10,4 +10,7 @@ public record Player(
     int wins,
     int drops
 ) {
+    public boolean isHuman() {
+        return steamId.id() != 0;
+    }
 }

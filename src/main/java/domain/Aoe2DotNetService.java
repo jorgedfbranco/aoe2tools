@@ -70,10 +70,11 @@ public class Aoe2DotNetService {
     }
 
     private static Player parsePlayer(JsonNode slotElement) {
+        var name = slotElement.get("name");
         return new Player(
             new SteamId(slotElement.get("steam_id").asLong()),
             new ProfileId(slotElement.get("profile_id").asInt()),
-            slotElement.get("name").asText(),
+            name.isNull() ? "AI" : name.asText(),
             slotElement.get("country").asText(),
             slotElement.get("rating").asInt(),
             slotElement.get("games").asInt(),

@@ -112,6 +112,7 @@ public class MatchBrowser extends Application {
         playerListing.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
                 var profileId = playerListing.getSelectionModel().getSelectedItem().player.id();
+                matchPane.clearMatch();
                 matchListing.showMatches(profileId);
             }
         });
