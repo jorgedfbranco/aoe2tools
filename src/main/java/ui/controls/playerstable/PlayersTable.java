@@ -19,8 +19,11 @@ import ui.model.PlayerRow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayersTable extends TableView<PlayerRow> {
     private final ObservableList<PlayerRow> playerListing = FXCollections.observableList(new ArrayList<>());
@@ -48,39 +51,41 @@ public class PlayersTable extends TableView<PlayerRow> {
         label.setStyle("-fx-font-style: italic;");
         vbox.getChildren().add(label);
         vbox.getChildren().add(progress);
-        progress.setProgress(0);
-        progress.setPrefWidth(24);
+        progress.setMaxWidth(24);
         vbox.setAlignment(Pos.CENTER);
         setPlaceholder(vbox);
         currentlySearching.setValue(true);
 
-        threadpool.submit(() -> {
+        int maxCount = 20;
+
+        var unranked = new AtomicReference<List<Player>>();
+        var ranked1x1 = new AtomicReference<List<Player>>();
+        var rankedTG = new AtomicReference<List<Player>>();
+
+        var unrankedFuture = CompletableFuture.runAsync(() -> unranked.set(Aoe2DotNetService.findPlayers(filter, maxCount, LeaderboardType.Unranked)), threadpool);
+        var ranked1x1Future = CompletableFuture.runAsync(() -> ranked1x1.set(Aoe2DotNetService.findPlayers(filter, maxCount, LeaderboardType._1x1_RM)), threadpool);
+        var rankedTGFuture = CompletableFuture.runAsync(() -> rankedTG.set(Aoe2DotNetService.findPlayers(filter, maxCount, LeaderboardType.TG_RM)), threadpool);
+
+        CompletableFuture.allOf(unrankedFuture, ranked1x1Future, rankedTGFuture).whenComplete((a, b) -> {
             var playerIds = new HashMap<ProfileId, Player>();
             var ratingUnranked = new HashMap<ProfileId, Integer>();
             var rating1x1RM = new HashMap<ProfileId, Integer>();
             var ratingTgRM = new HashMap<ProfileId, Integer>();
-            int maxCount = 20;
 
-            Platform.runLater(() -> label.setText("Searching players.. Unranked"));
-            for (Player player : Aoe2DotNetService.findPlayers(filter, maxCount, LeaderboardType.Unranked)) {
+            for (Player player : unranked.get()) {
                 playerIds.put(player.id(), player);
                 ratingUnranked.put(player.id(), player.rating());
             }
-            Platform.runLater(() -> progress.setProgress(0.33));
 
-            Platform.runLater(() -> label.setText("Searching players.. 1x1 RM"));
-            for (Player player : Aoe2DotNetService.findPlayers(filter, maxCount, LeaderboardType._1x1_RM)) {
+            for (Player player : ranked1x1.get()) {
                 playerIds.put(player.id(), player);
                 rating1x1RM.put(player.id(), player.rating());
             }
-            Platform.runLater(() -> progress.setProgress(0.66));
 
-            Platform.runLater(() -> label.setText("Searching players.. TG RM"));
-            for (Player player : Aoe2DotNetService.findPlayers(filter, maxCount, LeaderboardType.TG_RM)) {
+            for (Player player : rankedTG.get()) {
                 playerIds.put(player.id(), player);
                 ratingTgRM.put(player.id(), player.rating());
             }
-            Platform.runLater(() -> progress.setProgress(1));
 
             Platform.runLater(() -> {
                 for (ProfileId id : playerIds.keySet()) {
