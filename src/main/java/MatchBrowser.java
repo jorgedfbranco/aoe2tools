@@ -3,15 +3,14 @@ import domain.model.ProfileId;
 import infra.HttpService;
 import infra.WindowsService;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import ui.controls.FilterBar;
@@ -21,6 +20,10 @@ import ui.controls.playerstable.NickColumn;
 import ui.controls.playerstable.PlayerLabel;
 import ui.controls.playerstable.PlayersTable;
 import ui.controls.playerstable.RatingColumn;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MatchBrowser extends Application {
     public static void main(String[] args) {
@@ -35,14 +38,14 @@ public class MatchBrowser extends Application {
         vbox.setPadding(new Insets(8, 8, 8, 8));
         vbox.setSpacing(8);
 
-        var matchListing = new MatchesTable();
+        var threadpool = Executors.newCachedThreadPool();
+
+        var matchListing = new MatchesTable(threadpool);
         VBox.setVgrow(matchListing, Priority.ALWAYS);
 
-        var playerListing = new PlayersTable();
-
+        var playerListing = new PlayersTable(threadpool);
         var matchPane = new MatchPane();
-
-        var viewModel = new MatchDownloaderController(matchListing, playerListing, matchPane);
+        var viewModel = new MatchDownloaderController(matchListing, playerListing, matchPane, threadpool);
 
         playerListing.getColumns().add(RatingColumn._1x1RatingColumn);
         playerListing.getColumns().add(RatingColumn.tgRatingColumn);
@@ -67,6 +70,10 @@ public class MatchBrowser extends Application {
         spectateMenu.setOnAction(e -> viewModel.spectateGame());
         matchListing.getContextMenu().getItems().add(spectateMenu);
 
+        var spectateLinkMenu = new MenuItem("Copy Spectate Link");
+        spectateLinkMenu.setOnAction(e -> viewModel.copySpectateLink());
+        matchListing.getContextMenu().getItems().add(spectateLinkMenu);
+
         var downloadMenu = new MenuItem("Download Match");
         downloadMenu.setOnAction(e -> viewModel.downloadGame());
         matchListing.getContextMenu().getItems().add(downloadMenu);
@@ -78,20 +85,24 @@ public class MatchBrowser extends Application {
                 label.getContextMenu().getItems().add(0, spectateMenu);
                 spectateMenu.setOnAction(e -> viewModel.spectateGame());
 
-                var copyDownloadLinkMenu = new MenuItem("Copy download link");
-                label.getContextMenu().getItems().add(1, copyDownloadLinkMenu);
-                copyDownloadLinkMenu.setOnAction(e -> viewModel.copyDownloadLink(label.getPlayer().id()));
+                var copySpectateLinkMenu = new MenuItem("Copy Spectate Link");
+                label.getContextMenu().getItems().add(1, copySpectateLinkMenu);
+                copySpectateLinkMenu.setOnAction(e -> viewModel.copySpectateLink());
+
+                var copyDownloadLinkMenu = new MenuItem("Copy Download Link");
+                label.getContextMenu().getItems().add(2, copyDownloadLinkMenu);
+                copyDownloadLinkMenu.setOnAction(e -> viewModel.copyDownloadLink(label.playerProperty().get().id()));
 
                 var downloadMatchMenu = new MenuItem("Download Match");
-                label.getContextMenu().getItems().add(2, downloadMatchMenu);
-                downloadMatchMenu.setOnAction(e -> viewModel.downloadGame(label.getPlayer().id()));
+                label.getContextMenu().getItems().add(3, downloadMatchMenu);
+                downloadMatchMenu.setOnAction(e -> viewModel.downloadGame(label.playerProperty().get().id()));
 
-                label.getContextMenu().getItems().add(3, new SeparatorMenuItem());
+                label.getContextMenu().getItems().add(4, new SeparatorMenuItem());
 
-                if (!label.getPlayer().id().equals(matchListing.currentPlayerId())) {
+                if (!label.playerProperty().get().id().equals(matchListing.playerIdProperty().get())) {
                     label.getContextMenu().getItems().add(new SeparatorMenuItem());
                     var showMatchesMenu = new MenuItem("Show Matches");
-                    showMatchesMenu.setOnAction(e -> viewModel.onShowPlayerMatchesAction(label.getPlayer().id()));
+                    showMatchesMenu.setOnAction(e -> viewModel.onShowPlayerMatchesAction(label.playerProperty().get().id()));
                     label.getContextMenu().getItems().add(showMatchesMenu);
                 }
             }
@@ -103,7 +114,7 @@ public class MatchBrowser extends Application {
         var filterBar = new FilterBar("Search player:") {
             @Override
             protected void onFilter(String filter) {
-                matchListing.matches.clear();
+                matchListing.clear();
                 matchPane.clearMatch();
                 matchListing.setPlaceholder(new Label());
                 playerListing.search(filter);
@@ -145,11 +156,13 @@ class MatchDownloaderController {
     private final PlayersTable playersListing;
     private final MatchesTable matchesListing;
     private final MatchPane matchPane;
+    private final ExecutorService threadpool;
 
-    public MatchDownloaderController(MatchesTable matchListing, PlayersTable playerListing, MatchPane matchPane) {
+    public MatchDownloaderController(MatchesTable matchListing, PlayersTable playerListing, MatchPane matchPane, ExecutorService threadpool) {
         this.matchesListing = matchListing;
         this.playersListing = playerListing;
         this.matchPane = matchPane;
+        this.threadpool = threadpool;
     }
 
     public void onShowMatchesAction() {
@@ -164,6 +177,12 @@ class MatchDownloaderController {
         var selectedItem = matchesListing.getSelectionModel().getSelectedItem();
         if (selectedItem != null)
             Aoe2Service.spectateGame(selectedItem.getId());
+    }
+
+    public void copySpectateLink() {
+        var selectedItem = matchesListing.getSelectionModel().getSelectedItem();
+        if (selectedItem != null)
+            Aoe2Service.copySpectateLink(selectedItem.getId());
     }
 
     public void downloadGame(ProfileId profileId) {
@@ -183,23 +202,53 @@ class MatchDownloaderController {
         if (selectedItem != null) {
             var matchId = selectedItem.getId();
 
-            for (var slot : selectedItem.getPlayers()) {
-                var player = slot.getSlot().player();
-                if (player.isPresent()) {
-                    var profileId = player.get().id();
-                    var downloadLink = Aoe2Service.downloadLink(matchId, profileId);
-                    if (HttpService.checkUrlExists(downloadLink)) {
-                        Aoe2Service.downloadGame(matchId, profileId);
-                        return;
+            var stage = new Stage();
+            stage.setTitle("Searching Recorded Games..");
+            stage.initModality(Modality.APPLICATION_MODAL);
+
+            var vbox = new VBox();
+            var progressbar = new ProgressBar();
+            var label = new Label();
+            vbox.getChildren().add(progressbar);
+            vbox.getChildren().add(label);
+
+            var scene = new Scene(vbox);
+            stage.setResizable(false);
+            stage.setScene(scene);
+            stage.setWidth(300);
+            stage.setHeight(200);
+
+            var playerCount = selectedItem.getPlayers().size();
+            var i = new AtomicInteger(0);
+            progressbar.setProgress(0);
+
+            threadpool.submit(() -> {
+                for (var slot : selectedItem.getPlayers()) {
+                    var player = slot.getSlot().player();
+                    if (player.isPresent()) {
+                        Platform.runLater(() -> label.setText("Checking " + player.get().name() + "'s POV..."));
+                        var profileId = player.get().id();
+                        var downloadLink = Aoe2Service.downloadLink(matchId, profileId);
+                        if (HttpService.checkUrlExists(downloadLink)) {
+                            Aoe2Service.downloadGame(matchId, profileId);
+                            Platform.runLater(stage::close);
+                            return;
+                        }
+                        Platform.runLater(() -> {
+                            progressbar.setProgress(1.0 * i.incrementAndGet() / playerCount);
+                        });
                     }
                 }
-            }
-
-            var alert = new Alert(Alert.AlertType.WARNING, "Could not find any valid download link.\r\nEither the match's still ongoing or the match's too old?");
-            alert.initStyle(StageStyle.UTILITY);
-            alert.setTitle("No match found.");
-            alert.setHeaderText(null);
-            alert.showAndWait();
+                Platform.runLater(() -> {
+                    var alert = new Alert(Alert.AlertType.WARNING, "Could not find any valid download link.\r\nEither the match's still ongoing or the match's too old?");
+                    alert.initStyle(StageStyle.UTILITY);
+                    alert.setTitle("No match found.");
+                    alert.setHeaderText(null);
+                    alert.showAndWait();
+                    Platform.runLater(stage::close);
+                });
+            });
+            stage.showAndWait();
         }
     }
 

@@ -20,14 +20,17 @@ import ui.model.PlayerRow;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 public class PlayersTable extends TableView<PlayerRow> {
     private final ObservableList<PlayerRow> playerListing = FXCollections.observableList(new ArrayList<>());
     private final BooleanProperty currentlySearching = new SimpleBooleanProperty(false);
+    private final ExecutorService threadpool;
 
     public void onPlayerContextMenuCreation(Player player, ContextMenu contextMenu) { }
 
-    public PlayersTable() {
+    public PlayersTable(ExecutorService threadpool) {
+        this.threadpool = threadpool;
         setItems(playerListing);
         setPlaceholder(new Label());
         setContextMenu(new ContextMenu());
@@ -51,8 +54,7 @@ public class PlayersTable extends TableView<PlayerRow> {
         setPlaceholder(vbox);
         currentlySearching.setValue(true);
 
-        // TODO: use threadpool instead
-        new Thread(() -> {
+        threadpool.submit(() -> {
             var playerIds = new HashMap<ProfileId, Player>();
             var ratingUnranked = new HashMap<ProfileId, Integer>();
             var rating1x1RM = new HashMap<ProfileId, Integer>();
@@ -83,10 +85,10 @@ public class PlayersTable extends TableView<PlayerRow> {
             Platform.runLater(() -> {
                 for (ProfileId id : playerIds.keySet()) {
                     playerListing.add(new PlayerRow(
-                        playerIds.get(id),
-                        Optional.ofNullable(ratingUnranked.get(id)),
-                        Optional.ofNullable(rating1x1RM.get(id)),
-                        Optional.ofNullable(ratingTgRM.get(id)))
+                            playerIds.get(id),
+                            Optional.ofNullable(ratingUnranked.get(id)),
+                            Optional.ofNullable(rating1x1RM.get(id)),
+                            Optional.ofNullable(ratingTgRM.get(id)))
                     );
                 }
                 if (playerListing.isEmpty()) {
@@ -94,6 +96,6 @@ public class PlayersTable extends TableView<PlayerRow> {
                 }
                 currentlySearching.setValue(false);
             });
-        }).start();
+        });
     }
 }

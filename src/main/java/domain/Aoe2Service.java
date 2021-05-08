@@ -15,6 +15,10 @@ public class Aoe2Service {
         return WindowsService.runWindowsCommand("aoe2de://1/" + matchId.id());
     }
 
+    public static void copySpectateLink(MatchId matchId) {
+        WindowsService.setClipboard("aoe2de://1/" + matchId.id());
+    }
+
     public static void downloadGame(MatchId matchId, ProfileId profileId) {
         WindowsService.runWindowsCommand(downloadLink(matchId, profileId));
     }

@@ -65,7 +65,7 @@ public class Aoe2DotNetService {
             return lobbies;
         } catch (Exception e) {
             e.printStackTrace();
-            return Arrays.asList();
+            return Collections.emptyList();
         }
     }
 
@@ -106,12 +106,12 @@ public class Aoe2DotNetService {
                 return Optional.empty();
 
             var rating = new Rating(
-                    element.get("rating").asInt(),
-                    element.get("num_wins").asInt(),
-                    element.get("num_losses").asInt(),
-                    element.get("streak").asInt(),
-                    element.get("drops").asInt(),
-                    DateTimeUtils.toLocalDateTime(element.get("timestamp").asLong())
+                element.get("rating").asInt(),
+                element.get("num_wins").asInt(),
+                element.get("num_losses").asInt(),
+                element.get("streak").asInt(),
+                element.get("drops").asInt(),
+                DateTimeUtils.toLocalDateTime(element.get("timestamp").asLong())
             );
             return Optional.of(rating);
         } catch (JsonProcessingException e) {

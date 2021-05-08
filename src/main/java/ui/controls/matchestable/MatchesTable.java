@@ -2,8 +2,9 @@ package ui.controls.matchestable;
 
 import domain.Aoe2DotNetService;
 import domain.model.ProfileId;
-import domain.model.SteamId;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ContextMenu;
@@ -14,46 +15,34 @@ import ui.viewmodel.LobbyViewModel;
 
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 
 /**
  * A TableView displaying one match (or lobby) per row.
  */
 public class MatchesTable extends TableView<LobbyViewModel> {
-    // TODO: make this private
-    public final ObservableList<LobbyViewModel> matches = FXCollections.observableList(new ArrayList<>());
+    private final ObservableList<LobbyViewModel> matches = FXCollections.observableList(new ArrayList<>());
 
-    private ProfileId currentPlayerId;
+    private final ObjectProperty<ProfileId> profileId = new SimpleObjectProperty<>();
+    public ObjectProperty<ProfileId> playerIdProperty() { return profileId; }
 
-    public ProfileId currentPlayerId() { return currentPlayerId; }
+    private final ExecutorService threadpool;
 
-//    public final TableColumn<LobbyViewModel, List<Slot>> playersColumn = new TableColumn<>("Players");
-
-    public MatchesTable() {
+    public MatchesTable(ExecutorService threadpool) {
+        this.threadpool = threadpool;
         setPlaceholder(new Label());
         setItems(matches);
-
-//
-//        var spectateMenuItem = new MenuItem("Spectate Match");
-//        spectateMenuItem.setOnAction(k -> {
-//            var match = getSelectionModel().getSelectedItem();
-//            if (match != null)
-//                Aoe2Service.spectateGame(match.getId());
-//        });
-//        contextMenu.getItems().add(spectateMenuItem);
-//
         setContextMenu(new ContextMenu());
     }
 
     public void showMatches(ProfileId id) {
-        // TODO: use threadpool
-        this.currentPlayerId = id;
         matches.clear();
+        this.profileId.set(id);
         var progress = new ProgressIndicator();
         progress.setMaxWidth(24);
         setPlaceholder(progress);
-        // TODO: we need to unite this placeholder progressbar logic with the other one of playerListing..
-        new Thread(() -> {
+        threadpool.submit(() -> {
             var lobbies = Aoe2DotNetService.getMatches(id);
             Platform.runLater(() -> {
                 lobbies.forEach(lobby -> matches.add(new LobbyViewModel(lobby, Optional.empty())));
@@ -62,6 +51,11 @@ public class MatchesTable extends TableView<LobbyViewModel> {
                 else
                     getSelectionModel().select(0);
             });
-        }).start();
+        });
+    }
+
+    public void clear() {
+        matches.clear();
+        this.profileId.set(null);
     }
 }
