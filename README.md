@@ -18,3 +18,7 @@ Most often people use aoe2.net to download recorded games by looking at a given 
 
 Unfortunately, after the game is finished, it may take some 20-60 mins for them to be visible on the site. 
 AOE2 Match Browser allows you to have them ready for download right away.
+
+## See Players Without Nicknames
+
+There are players that aren't "clickable" on aoe2.net as their nicknames seem to be empty. In this tool, they show up as "<blank>".
