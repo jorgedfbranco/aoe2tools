@@ -21,4 +21,4 @@ AOE2 Match Browser allows you to have them ready for download right away.
 
 ## See Players Without Nicknames
 
-There are players that aren't "clickable" on aoe2.net as their nicknames seem to be empty. In this tool, they show up as "<blank>".
+There are players that aren't "clickable" on aoe2.net as their nicknames seem to be empty. In this tool, they show up as `<blank>`.
